@@ -1,5 +1,4 @@
-#!/bin/sh -l
+#!/bin/bash
+set -e
 
-set -xe
-
-/root/.composer/vendor/bin/phplint ${INPUT_PATH} ${INPUT_OPTIONS}
+phplint ./

@@ -1,12 +1,16 @@
-ARG VERSION=7.4
+FROM php:7.3-cli
 
-FROM composer:1.10 AS build
-RUN composer global require overtrue/phplint
+RUN apt-get update && apt-get -y install zip unzip
 
-FROM php:${VERSION}-cli-alpine
-COPY --from=build /tmp/vendor /root/.composer/vendor
-COPY entrypoint.sh /entrypoint.sh
+RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+RUN php -r "if (hash_file('sha384', 'composer-setup.php') === file_get_contents('https://composer.github.io/installer.sig')) { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+RUN php composer-setup.php
+RUN php -r "unlink('composer-setup.php');"
+
+RUN mv composer.phar /usr/local/bin/composer
+
+RUN mkdir /phplint && cd /phplint && composer require overtrue/phplint && ln -s /phplint/vendor/bin/phplint /usr/local/bin/phplint
+
+COPY "entrypoint.sh" "/entrypoint.sh"
 RUN chmod +x /entrypoint.sh
-RUN cp /usr/local/etc/php/php.ini-development /usr/local/etc/php/php.ini
-
 ENTRYPOINT ["/entrypoint.sh"]
